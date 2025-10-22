@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
+import { supabaseServer } from '../../../../../../lib/supabaseServer'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string, itemId: string } }) {
   const supabase = supabaseServer()

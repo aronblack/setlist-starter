@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
+import { supabaseServer } from '../../../lib/supabaseServer'
 
 // POST /api/setlists  { title: string, is_public?: boolean }
 export async function POST(req: NextRequest) {
