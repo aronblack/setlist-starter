@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
+import { supabaseServer } from '../../../../../lib/supabaseServer'
 
 // POST /api/setlists/:id/items { afterPosition?: number, item: {...} }
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
