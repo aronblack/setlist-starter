@@ -1,9 +1,11 @@
+export const runtime = 'nodejs'
+
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '../../../../../lib/supabaseServer'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 // POST /api/setlists/:id/items { afterPosition?: number, item: {...} }
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = supabaseServer()
+  const supabase = supabaseAdmin
   const setlist_id = params.id
   const body = await req.json().catch(() => ({}))
   const after = typeof body.afterPosition === 'number' ? body.afterPosition : null
