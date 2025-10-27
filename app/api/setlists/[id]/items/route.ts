@@ -1,11 +1,20 @@
-export const runtime = 'nodejs'
-
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getSupabaseAdmin } from '@/lib/supabaseServer'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 // POST /api/setlists/:id/items { afterPosition?: number, item: {...} }
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = supabaseAdmin
+  // Lazy init admin client and guard missing env
+  let supabase
+  try {
+    supabase = getSupabaseAdmin()
+  } catch (e: any) {
+    return NextResponse.json({ error: 'Supabase admin not configured', detail: String(e) }, { status: 500 })
+  }
+
   const setlist_id = params.id
   const body = await req.json().catch(() => ({}))
   const after = typeof body.afterPosition === 'number' ? body.afterPosition : null
@@ -24,10 +33,34 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     track_title: item.track_title ?? null,
     duration_seconds: item.duration_seconds ?? null,
     segue: !!item.segue,
-    notes: item.notes ?? null
+    notes: item.notes ?? null,
   }
 
   const { data, error } = await supabase.from('setlist_items').insert(toInsert).select('*').single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ item: data })
+}
+
+export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+  const id = ctx.params?.id
+  if (!id) return NextResponse.json({ error: 'Missing setlist id' }, { status: 400 })
+
+  let supabase
+  try {
+    supabase = getSupabaseAdmin()
+  } catch (e: any) {
+    return NextResponse.json({ error: 'Supabase admin not configured', detail: String(e) }, { status: 500 })
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('setlist_items')
+      .select('*')
+      .eq('setlist_id', id)
+      .order('position', { ascending: true })
+    if (error) throw error
+    return NextResponse.json({ items: data ?? [] })
+  } catch (e: any) {
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
 }

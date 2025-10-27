@@ -18,3 +18,6 @@ export function getSupabaseAdmin() {
 
 // Add this export to match existing imports
 export const supabaseServer = getSupabaseUser
+
+// Ensure this file has no other createClient calls at top-level
+export { } // keep as module
