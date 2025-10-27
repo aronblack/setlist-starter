@@ -9,21 +9,27 @@ export default function ExplorePage() {
   const [items, setItems] = useState<Item[]>([])
   const [nextPage, setNextPage] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchPage = async (page = 1, replace = false) => {
     const query = q.trim()
     if (!query) {
-      setItems([])
-      setNextPage(null)
+      setItems([]); setNextPage(null); setError(null)
       return
     }
-    setLoading(true)
+    setLoading(true); setError(null)
     try {
       const url = '/api/search?' + new URLSearchParams({ q: query, page: String(page) })
-      const res = await fetch(url)
+      const res = await fetch(url, { cache: 'no-store' })
+      if (!res.ok) {
+        setError(`Search failed (${res.status})`)
+        return
+      }
       const data = await res.json()
       setItems(prev => replace ? (data.items || []) : [...prev, ...(data.items || [])]) // functional updater avoids stale closures
       setNextPage(data.nextPage ?? null)
+    } catch (e: any) {
+      setError('Search failed')
     } finally {
       setLoading(false)
     }
@@ -48,6 +54,8 @@ export default function ExplorePage() {
           {loading ? 'Searching…' : 'Search'}
         </button>
       </div>
+
+      {error && <div style={{ color: 'crimson', marginTop: 8 }}>{error}</div>}
 
       <div style={{ marginTop: 16, display: 'grid', gap: 10 }}>
         {items.map(it => (

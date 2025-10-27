@@ -3,6 +3,7 @@ import { kv } from '@vercel/kv'
 
 export const runtime = 'nodejs'
 export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 const ARCHIVE = 'https://archive.org/advancedsearch.php'
 const METADATA = 'https://archive.org/metadata'
@@ -226,13 +227,17 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Only cache when we have results; optionally short-TTL negative cache if desired
+  // Safe-cache: skip or swallow KV errors in prod
   if (!noCache) {
-    if (items.length > 0) {
-      await kv.set(key, payload, { ex: 60 * 60 * 24 })
-    } else {
-      // optional: short negative cache
-      // await kv.set(key, payload, { ex: 60 * 5 })
+    try {
+      if (items.length > 0) {
+        await (kv as any)?.set?.(key, payload, { ex: 60 * 60 * 24 })
+      } else {
+        // optional negative cache
+        // await (kv as any)?.set?.(key, payload, { ex: 60 * 5 })
+      }
+    } catch (e) {
+      if (debug) (payload as any).debug.kvSetError = String(e)
     }
   }
 
