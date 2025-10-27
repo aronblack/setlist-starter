@@ -2,27 +2,51 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-type Item = { identifier: string, title?: string, year?: string, date?: string, venue?: string }
+type Item = { identifier: string, title?: string, year?: string | number, date?: string, venue?: string }
 
 export default function ExplorePage() {
   const [q, setQ] = useState('')
   const [items, setItems] = useState<Item[]>([])
+  const [nextPage, setNextPage] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const run = async () => {
-    const url = '/api/search?' + new URLSearchParams({ q })
-    const res = await fetch(url)
-    const data = await res.json()
-    setItems(data.items || [])
+  const fetchPage = async (page = 1, replace = false) => {
+    const query = q.trim()
+    if (!query) {
+      setItems([])
+      setNextPage(null)
+      return
+    }
+    setLoading(true)
+    try {
+      const url = '/api/search?' + new URLSearchParams({ q: query, page: String(page) })
+      const res = await fetch(url)
+      const data = await res.json()
+      setItems(prev => replace ? (data.items || []) : [...prev, ...(data.items || [])]) // functional updater avoids stale closures
+      setNextPage(data.nextPage ?? null)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  useEffect(() => { run() }, [])
+  const run = () => fetchPage(1, true)
+  const loadMore = () => nextPage && fetchPage(nextPage, false)
+
+  useEffect(() => { /* optional: initial empty search does nothing */ }, [])
 
   return (
     <main className='container'>
       <h1>Explore</h1>
-      <div className='row' style={{ marginTop: 12 }}>
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder='Search songs, venues, years…' />
-        <button className='btn' onClick={run}>Search</button>
+      <div className='row' style={{ marginTop: 12, gap: 8 }}>
+        <input
+          value={q}
+          onChange={e => setQ(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && run()}
+          placeholder='Search songs, venues, years…'
+        />
+        <button className='btn' onClick={run} disabled={loading || !q.trim()}>
+          {loading ? 'Searching…' : 'Search'}
+        </button>
       </div>
 
       <div style={{ marginTop: 16, display: 'grid', gap: 10 }}>
@@ -32,7 +56,16 @@ export default function ExplorePage() {
             <div style={{ opacity: 0.7 }}>{[it.date, it.venue].filter(Boolean).join(' — ')}</div>
           </Link>
         ))}
+        {!loading && q.trim() && items.length === 0 && <div>No results.</div>}
       </div>
+
+      {nextPage && (
+        <div style={{ marginTop: 16 }}>
+          <button className='btn' onClick={loadMore} disabled={loading}>
+            {loading ? 'Loading…' : 'Load more'}
+          </button>
+        </div>
+      )}
     </main>
   )
 }
