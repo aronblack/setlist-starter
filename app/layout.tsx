@@ -1,16 +1,20 @@
-import Providers from './providers'
 import './globals.css'
+import type { Metadata } from 'next'
+import MainNav from '@/app/components/MainNav'
 
-export const metadata = {
-  title: 'GD Setlist Builder',
-  description: 'Build and share Grateful Dead setlists'
+export const metadata: Metadata = {
+  title: 'GD Setlists',
+  description: 'Explore and build Grateful Dead setlists',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang='en'>
+    <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <MainNav />
+        <div style={{ paddingTop: 8 }}>
+          {children}
+        </div>
       </body>
     </html>
   )
