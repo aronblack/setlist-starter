@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import AuthButton from '@/app/components/AuthButton'
 
 function NavLink(props: { href: string; label: string }) {
   const pathname = usePathname()
@@ -47,10 +48,12 @@ export default function MainNav() {
         <Link href="/" style={{ fontWeight: 700, textDecoration: 'none', color: '#111' }}>
           GD Setlists
         </Link>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <NavLink href="/explore" label="Explore" />
           <NavLink href="/builder/new" label="Builder" />
           <NavLink href="/setlists" label="Setlists" />
+          <NavLink href="/profile" label="Profile" />
+          <AuthButton />
         </div>
       </nav>
     </header>
