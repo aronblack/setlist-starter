@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import { usePlayer } from '@/app/components/PlayerProvider'
 
 type TrackInput = {
@@ -22,15 +23,24 @@ function writeQueue(items: QueueItem[]) {
 
 export default function AddToBuilder({ track }: { track: TrackInput }) {
   const { enqueue } = usePlayer()
+  const [added, setAdded] = useState(false)
+
   const add = () => {
     const items = readQueue()
     if (!items.some(i => i.url === track.url)) {
       items.push({ ...track, addedAt: Date.now() })
       writeQueue(items)
     }
-    // Also make it playable immediately
+    // Also enqueue for the playlist UI (no-op if PlayerProvider not mounted)
     enqueue({ ...track, addedAt: Date.now() })
+
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1200)
   }
 
-  return <button className="btn" type="button" onClick={add}>Add to Builder</button>
+  return (
+    <button className="btn" type="button" onClick={add} aria-label="Add to builder">
+      {added ? 'Added ✓' : 'Add to Builder'}
+    </button>
+  )
 }

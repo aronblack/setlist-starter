@@ -50,7 +50,7 @@ export default function MainNav() {
         </Link>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <NavLink href="/explore" label="Explore" />
-          <NavLink href="/builder/new" label="Builder" />
+          <NavLink href="/builder/studio" label="Builder" />
           <NavLink href="/setlists" label="Setlists" />
           <NavLink href="/profile" label="Profile" />
           <AuthButton />
